@@ -24,9 +24,11 @@ import com.pavit.wave.ui.theme.WaveTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -60,6 +62,43 @@ fun NiagaraPrototype() {
 
     var touchY by remember { mutableStateOf<Float?>(null) }
     var columnHeight by remember { mutableStateOf(0f) }
+    var columnRightEdge by remember { mutableStateOf(0f) }
+    var letterPositions by remember { mutableStateOf<Map<Char, Float>>(emptyMap()) }
+    var letterXPositions by remember { mutableStateOf<Map<Char, Float>>(emptyMap()) }
+    
+    // Calculate all offsets in the parent
+    val letterOffsets = remember(touchY, letterPositions, columnHeight) {
+        if (touchY == null || columnHeight == 0f || letterPositions.isEmpty()) {
+            alphabet.associateWith { 0f }
+        } else {
+            alphabet.associateWith { letter ->
+                val letterY = letterPositions[letter] ?: 0f
+                calculateElasticOffset(touchY!!, letterY, columnHeight)
+            }
+        }
+    }
+    
+    // Find the maximum offset and which letter has it
+    val (maxOffset, letterAtPeak) = remember(letterOffsets) {
+        if (letterOffsets.isEmpty()) {
+            Pair(0f, null)
+        } else {
+            val max = letterOffsets.values.maxOrNull() ?: 0f
+            val letter = letterOffsets.entries.find { it.value == max }?.key
+            Pair(max, letter)
+        }
+    }
+    
+    // Get the actual X position of the letter at peak
+    val peakLetterX = remember(letterAtPeak, letterXPositions) {
+        if (letterAtPeak != null) {
+            letterXPositions[letterAtPeak] ?: 0f
+        } else {
+            0f
+        }
+    }
+    
+    val density = LocalDensity.current
 
     Box(
         modifier = Modifier
@@ -94,6 +133,8 @@ fun NiagaraPrototype() {
                 .align(Alignment.CenterEnd)
                 .onGloballyPositioned { coordinates ->
                     columnHeight = coordinates.size.height.toFloat()
+                    val rect = coordinates.positionInRoot()
+                    columnRightEdge = rect.x + coordinates.size.width
                 },
             verticalArrangement = Arrangement.spacedBy(0.001.dp),
             horizontalAlignment = Alignment.End
@@ -101,8 +142,44 @@ fun NiagaraPrototype() {
             alphabet.forEach { letter ->
                 NiagaraLetter(
                     letter = letter,
-                    touchY = touchY,
-                    maxInfluenceDistance = columnHeight
+                    offset = letterOffsets[letter] ?: 0f,
+                    onPositionUpdate = { x, y ->
+                        letterPositions = letterPositions + (letter to y)
+                        letterXPositions = letterXPositions + (letter to x)
+                    }
+                )
+            }
+        }
+
+        // Draw circle at max offset position
+        // Use actual letter X position (peakLetterX) which was working!
+        // X = letter center - full circle diameter - padding (to the left, no overlap)
+        // Y follows touchY
+        if (touchY != null && maxOffset > 0f && peakLetterX > 0f && letterAtPeak != null) {
+            val circleSize = 48.dp // Bigger circle
+            val circleRadiusPx = with(density) { (circleSize / 2f).toPx() }
+            val letterPaddingPx = with(density) { 32.dp.toPx() }
+            
+            // Move circle further left: letter center - radius - padding to avoid overlap
+            val circleCenterX = peakLetterX - circleRadiusPx - letterPaddingPx
+            
+            Box(
+                modifier = Modifier
+                    .offset(
+                        x = with(density) { circleCenterX.toDp() },
+                        y = with(density) { (touchY!! - circleRadiusPx).toDp() }
+                    )
+                    .size(circleSize)
+                    .clip(CircleShape)
+                    .background(Color(0xFF6200EE)), // Purple/Material color
+                contentAlignment = Alignment.Center
+            ) {
+                // Letter inside the circle
+                Text(
+                    text = letterAtPeak.toString(),
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -111,7 +188,7 @@ fun NiagaraPrototype() {
         if (touchY != null) {
             Box(
                 modifier = Modifier
-                    .offset(y = with(LocalDensity.current) { touchY!!.toDp() })
+                    .offset(y = with(density) { touchY!!.toDp() })
                     .fillMaxWidth()
                     .height(2.dp)
                     .background(Color.Red)
@@ -144,23 +221,12 @@ fun calculateElasticOffset(touchY: Float, letterY: Float, maxInfluenceDistance: 
 @Composable
 fun NiagaraLetter(
     letter: Char,
-    touchY: Float?,
-    maxInfluenceDistance: Float
+    offset: Float,
+    onPositionUpdate: (Float, Float) -> Unit
 ) {
-    var letterCenterY by remember { mutableStateOf(0f) }
-
-    // Calculate the horizontal offset based on distance from touch
-    val targetOffset = remember(touchY, letterCenterY, maxInfluenceDistance) {
-        if (touchY == null || maxInfluenceDistance == 0f) {
-            0f
-        } else {
-            calculateElasticOffset(touchY, letterCenterY, maxInfluenceDistance)
-        }
-    }
-
     // Animate the offset with spring physics for elastic feel
     val animatedOffset by animateFloatAsState(
-        targetValue = targetOffset,
+        targetValue = offset,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
@@ -178,7 +244,9 @@ fun NiagaraLetter(
             .offset(x = -animatedOffset.dp) // Move LEFT (negative X)
             .onGloballyPositioned { coordinates ->
                 val rect = coordinates.positionInRoot()
-                letterCenterY = rect.y + (coordinates.size.height / 2f)
+                val letterCenterX = rect.x + (coordinates.size.width / 2f)
+                val letterCenterY = rect.y + (coordinates.size.height / 2f)
+                onPositionUpdate(letterCenterX, letterCenterY)
             }
     )
 }
