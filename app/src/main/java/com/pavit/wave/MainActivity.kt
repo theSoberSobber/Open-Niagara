@@ -6,6 +6,9 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -26,10 +29,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.abs
+import kotlin.math.exp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -92,7 +99,7 @@ fun NiagaraPrototype() {
         ) {
             alphabet.forEach { letter ->
                 // We will add the animation logic here in the next step
-                NiagaraLetter(letter = letter, isSelected = false)
+                NiagaraLetter(letter = letter, touchY = touchY)
             }
         }
 
@@ -110,17 +117,65 @@ fun NiagaraPrototype() {
     }
 }
 
+fun calculateElasticOffset(touchY: Float, letterY: Float): Float {
+    val distance = abs(touchY - letterY)
+
+    // Maximum distance that affects the letter
+    val maxInfluenceDistance = 400f
+
+    // Maximum offset in dp
+    val maxOffset = 80f
+
+//    if (distance > maxInfluenceDistance) {
+//        return 0f
+//    }
+
+    // Use exponential decay for smooth elastic effect
+    // Letters closer to touch move MORE
+    val normalizedDistance = distance / maxInfluenceDistance
+    val influence = exp(-normalizedDistance * 1.5) // Exponential falloff
+
+    return (maxOffset * influence).toFloat()
+}
+
 @Composable
 fun NiagaraLetter(
     letter: Char,
-    isSelected: Boolean
+    touchY: Float?,
 ) {
+
+    var letterCenterY by remember { mutableStateOf(0f) }
+
+    val targetOffset = remember(touchY, letterCenterY) {
+        if (touchY == null) {
+            0f
+        } else {
+            calculateElasticOffset(touchY, letterCenterY)
+        }
+    }
+
+    val animatedOffset by animateFloatAsState(
+        targetValue = targetOffset,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "letterOffset"
+    )
+
     Text(
         text = letter.toString(),
         color = Color.White,
         fontSize = 12.sp,
         fontWeight = FontWeight.Medium,
-        modifier = Modifier.padding(horizontal = 16.dp)
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .offset(x = -animatedOffset.dp) // Move LEFT (negative X)
+            .onGloballyPositioned { coordinates ->
+                val rect = coordinates.positionInRoot()
+                letterCenterY = rect.y + (coordinates.size.height / 2f)
+                Log.d("POSITION TXT", letterCenterY.toString())
+            }
     )
 }
 
