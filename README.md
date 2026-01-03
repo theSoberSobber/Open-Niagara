@@ -1,5 +1,5 @@
 # Open Niagara - To be renamed to another waterfall
-Why? See: [https://github.com/NiagaraLauncher/Niagara-Issues/issues/180](https://github.com/NiagaraLauncher/Niagara-Issues/issues/180)
+Why? See: [https://github.com/NiagaraLauncher/Niagara-Issues/issues/180](https://github.com/NiagaraLauncher/Niagara-Issues/issues/180), [https://github.com/NiagaraLauncher/Niagara-Issues/issues/1680](https://github.com/NiagaraLauncher/Niagara-Issues/issues/1680)
 
 The waterfall bar that niagara has is too tempting of a feature to give up lol, so that's where we are going to start
 
