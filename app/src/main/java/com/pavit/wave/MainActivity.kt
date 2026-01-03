@@ -54,29 +54,26 @@ class MainActivity : ComponentActivity() {
 @Preview
 @Composable
 fun NiagaraPrototype() {
-    // 1. The Data: A to Z, plus special chars
     val alphabet = remember {
         listOf('⭐', '#') + ('A'..'Z').toList()
     }
 
-    // 2. State: Where is the finger? (Y-axis only for now)
-    // null means the user isn't touching the screen
     var touchY by remember { mutableStateOf<Float?>(null) }
+    var columnHeight by remember { mutableStateOf(0f) }
 
-    // Debug helper: Visualizing the touch line
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black) // Dark background to see white text
+            .background(Color.Black)
     ) {
 
-        // This is the "Touch Surface" - it covers the whole right side
+        // Touch Surface
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .width(100.dp) // The touch area width
+                .width(100.dp)
                 .align(Alignment.CenterEnd)
-                .background(Color.White.copy(alpha = 0.05f)) // Faint visible touch area
+                .background(Color.White.copy(alpha = 0.05f))
                 .pointerInput(Unit) {
                     detectDragGestures(
                         onDragStart = { change ->
@@ -93,19 +90,25 @@ fun NiagaraPrototype() {
 
         // The Alphabet Column
         Column(
-            modifier = Modifier.align(Alignment.CenterEnd),
-            verticalArrangement = Arrangement.spacedBy(2.dp), // Tight spacing like the screenshots
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .onGloballyPositioned { coordinates ->
+                    columnHeight = coordinates.size.height.toFloat()
+                },
+            verticalArrangement = Arrangement.spacedBy(0.001.dp),
+            horizontalAlignment = Alignment.End
         ) {
             alphabet.forEach { letter ->
-                // We will add the animation logic here in the next step
-                NiagaraLetter(letter = letter, touchY = touchY)
+                NiagaraLetter(
+                    letter = letter,
+                    touchY = touchY,
+                    maxInfluenceDistance = columnHeight
+                )
             }
         }
 
         // Debug: Show a red line where the finger is
         if (touchY != null) {
-            Log.d("Touch Y", touchY.toString())
             Box(
                 modifier = Modifier
                     .offset(y = with(LocalDensity.current) { touchY!!.toDp() })
@@ -117,43 +120,45 @@ fun NiagaraPrototype() {
     }
 }
 
-fun calculateElasticOffset(touchY: Float, letterY: Float): Float {
-    val distance = abs(touchY - letterY)
-
-    // Maximum distance that affects the letter
-    val maxInfluenceDistance = 400f
+/**
+ * Calculates how far left a letter should move based on distance from touch
+ * The closer the touch, the more it moves left (elastic rope effect)
+ */
+fun calculateElasticOffset(touchY: Float, letterY: Float, maxInfluenceDistance: Float): Float {
+    val distance = (touchY - letterY)
 
     // Maximum offset in dp
-    val maxOffset = 80f
+    val maxOffset = 120f;
+    val decayFactor = 10f;
 
-//    if (distance > maxInfluenceDistance) {
-//        return 0f
-//    }
+    // Normalize distance by the column height
+    val normalizedDistance = distance / maxInfluenceDistance
 
     // Use exponential decay for smooth elastic effect
     // Letters closer to touch move MORE
-    val normalizedDistance = distance / maxInfluenceDistance
-    val influence = exp(-normalizedDistance * 1.5) // Exponential falloff
+    val influence = exp(-normalizedDistance * normalizedDistance * decayFactor)
 
-    return (maxOffset * influence).toFloat()
+    return maxOffset * influence
 }
 
 @Composable
 fun NiagaraLetter(
     letter: Char,
     touchY: Float?,
+    maxInfluenceDistance: Float
 ) {
-
     var letterCenterY by remember { mutableStateOf(0f) }
 
-    val targetOffset = remember(touchY, letterCenterY) {
-        if (touchY == null) {
+    // Calculate the horizontal offset based on distance from touch
+    val targetOffset = remember(touchY, letterCenterY, maxInfluenceDistance) {
+        if (touchY == null || maxInfluenceDistance == 0f) {
             0f
         } else {
-            calculateElasticOffset(touchY, letterCenterY)
+            calculateElasticOffset(touchY, letterCenterY, maxInfluenceDistance)
         }
     }
 
+    // Animate the offset with spring physics for elastic feel
     val animatedOffset by animateFloatAsState(
         targetValue = targetOffset,
         animationSpec = spring(
@@ -174,7 +179,6 @@ fun NiagaraLetter(
             .onGloballyPositioned { coordinates ->
                 val rect = coordinates.positionInRoot()
                 letterCenterY = rect.y + (coordinates.size.height / 2f)
-                Log.d("POSITION TXT", letterCenterY.toString())
             }
     )
 }
