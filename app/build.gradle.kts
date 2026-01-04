@@ -66,4 +66,6 @@ dependencies {
 
     // navigation compose for hiltViewModel() injection
     implementation(libs.androidx.hilt.navigation.compose)
+
+    implementation(libs.accompanist.drawablepainter)
 }
