@@ -60,6 +60,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    // hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
+
+    // navigation compose for hiltViewModel() injection
+    implementation(libs.androidx.hilt.navigation.compose)
 }

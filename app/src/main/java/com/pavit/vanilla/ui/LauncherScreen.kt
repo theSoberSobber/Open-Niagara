@@ -9,10 +9,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 // need hilt navigation compose dependency for injecting the view model here
 @Composable
 fun LauncherScreen(
+    vm: LauncherViewModel = hiltViewModel()
 ){
     Box(modifier = Modifier.fillMaxSize()){
         Text(
