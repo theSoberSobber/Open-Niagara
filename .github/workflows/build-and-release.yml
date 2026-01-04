@@ -63,7 +63,7 @@ jobs:
           tag_name: v${{ steps.version.outputs.VERSION_NAME }}
           name: opnia v${{ steps.version.outputs.VERSION_NAME }}
           body: |
-            Automated build created on ${{ date }}
+            Automated build created on $(date)
             
             Changes in this build:
             - Latest commit: ${{ github.event.head_commit.message }}
