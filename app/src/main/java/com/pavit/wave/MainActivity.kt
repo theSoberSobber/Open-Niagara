@@ -41,6 +41,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -74,14 +75,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-        )
         setContent {
             WaveTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    NiagaraPrototype()
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    containerColor = Color.Transparent
+                ) { innerPadding ->
+                  NiagaraPrototype()
+//                    Text("meow")
                 }
             }
         }
@@ -157,39 +158,6 @@ fun rememberInstalledApps(): List<AppInfo> {
     return apps
 }
 
-// Get wallpaper bitmap - proper implementation
-@Composable
-fun rememberWallpaper(): Bitmap? {
-    val context = LocalContext.current
-    var wallpaper by remember { mutableStateOf<Bitmap?>(null) }
-    
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            try {
-                val wallpaperManager = android.app.WallpaperManager.getInstance(context)
-                val drawable = wallpaperManager.drawable
-                
-                if (drawable != null) {
-                    // Get screen dimensions for proper sizing
-                    val displayMetrics = context.resources.displayMetrics
-                    val width = displayMetrics.widthPixels
-                    val height = displayMetrics.heightPixels
-                    
-                    val bitmap = drawable.toBitmap(width, height)
-                    Log.d("Wallpaper", "Wallpaper loaded: ${bitmap.width}x${bitmap.height}")
-                    wallpaper = bitmap
-                } else {
-                    Log.w("Wallpaper", "Wallpaper drawable is null")
-                }
-            } catch (e: Exception) {
-                Log.e("Wallpaper", "Error loading wallpaper: ${e.message}", e)
-            }
-        }
-    }
-    
-    return wallpaper
-}
-
 // Get first letter for grouping
 fun getFirstLetter(name: String): Char {
     val firstChar = name.uppercase().firstOrNull() ?: return '#'
@@ -212,8 +180,7 @@ fun NiagaraPrototype() {
     var letterPositions by remember { mutableStateOf<Map<Char, Float>>(emptyMap()) }
     var letterXPositions by remember { mutableStateOf<Map<Char, Float>>(emptyMap()) }
     
-    // Get wallpaper and apps
-    val wallpaper = rememberWallpaper()
+    // Get apps
     val allApps = rememberInstalledApps()
     
     // Selected letter for filtering (null = show all)
@@ -284,17 +251,10 @@ fun NiagaraPrototype() {
         modifier = Modifier
             .fillMaxSize()
     ) {
-        // Wallpaper background
-        wallpaper?.let { bitmap ->
-            Image(
-                bitmap = bitmap.asImageBitmap(),
-                contentDescription = "Wallpaper",
-                modifier = Modifier.fillMaxSize()
-            )
-        } ?: Box(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(Color.Transparent)
         )
         
         // Dim overlay to make content readable
@@ -397,7 +357,8 @@ fun NiagaraPrototype() {
                     )
                     .size(circleSize)
                     .clip(CircleShape)
-                    .background(Color(0xFF6200EE)), // Purple/Material color
+                    .background(MaterialTheme.colorScheme.primary),
+//                    .background(Color(0xFF6200EE)), // Purple/Material color
                 contentAlignment = Alignment.Center
             ) {
                 // Letter inside the circle
