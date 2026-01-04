@@ -10,8 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.Layout
 
+// need hilt navigation compose dependency for injecting the view model here
 @Composable
-fun LauncherScreen(){
+fun LauncherScreen(
+){
     Box(modifier = Modifier.fillMaxSize()){
         Text(
             text = "meow",
