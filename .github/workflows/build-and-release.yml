@@ -34,7 +34,15 @@ jobs:
       # --- Build APK ---
       - name: Build Release APK
         run: ./gradlew assembleRelease
-      
+     
+      - name: let's see where are the files
+        run: |
+          ls -lah .
+          ls -lah app
+          ls -lah app/build
+          ls -lah app/build/outputs
+          ls -lah app/build/outputs/apk
+          ls -lah app/build/outputs/apk/release
       - name: Rename APK
         run: |
           mv app/build/outputs/apk/release/app-release.apk \
