@@ -33,7 +33,7 @@ jobs:
       
       # --- Build APK ---
       - name: Build Release APK
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleDebug
      
       - name: let's see where are the files
         run: |
@@ -42,34 +42,18 @@ jobs:
           ls -lah app/build
           ls -lah app/build/outputs
           ls -lah app/build/outputs/apk
-          ls -lah app/build/outputs/apk/release
+          ls -lah app/build/outputs/apk/debug
       - name: Rename APK
         run: |
-          mv app/build/outputs/apk/release/app-release.apk \
-             app/build/outputs/apk/release/opnia-${{ steps.version.outputs.VERSION_NAME }}.apk
-      
-      # --- Build AAB ---
-      - name: Build Release AAB
-        run: ./gradlew bundleRelease
-      
-      - name: Rename AAB
-        run: |
-          mv app/build/outputs/bundle/release/app-release.aab \
-             app/build/outputs/bundle/release/opnia-${{ steps.version.outputs.VERSION_NAME }}.aab
+          mv app/build/outputs/apk/debug/app-debug.apk \
+             app/build/outputs/apk/debug/opnia-${{ steps.version.outputs.VERSION_NAME }}.apk
       
       # --- Upload as artifacts ---
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
         with:
           name: opnia-APK-${{ steps.version.outputs.VERSION_NAME }}
-          path: app/build/outputs/apk/release/opnia-${{ steps.version.outputs.VERSION_NAME }}.apk
-          retention-days: 7
-      
-      - name: Upload AAB as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: opnia-AAB-${{ steps.version.outputs.VERSION_NAME }}
-          path: app/build/outputs/bundle/release/opnia-${{ steps.version.outputs.VERSION_NAME }}.aab
+          path: app/build/outputs/apk/debug/opnia-${{ steps.version.outputs.VERSION_NAME }}.apk
           retention-days: 7
       
       # --- GitHub Release ---
@@ -85,6 +69,6 @@ jobs:
             - Latest commit: ${{ github.event.head_commit.message }}
             - Branch: ${{ github.ref_name }}
           files: |
-            app/build/outputs/apk/release/opnia-${{ steps.version.outputs.VERSION_NAME }}.apk
-            app/build/outputs/bundle/release/opnia-${{ steps.version.outputs.VERSION_NAME }}.aab
+            app/build/outputs/apk/debug/opnia-${{ steps.version.outputs.VERSION_NAME }}.apk
+            app/build/outputs/bundle/debug/opnia-${{ steps.version.outputs.VERSION_NAME }}.aab
           generate_release_notes: true
