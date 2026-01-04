@@ -1,8 +1,13 @@
 package com.pavit.vanilla.ui
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.pavit.vanilla.data.AppRepository
+import com.pavit.vanilla.model.AppEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 // state owner
@@ -16,4 +21,15 @@ class LauncherViewModel @Inject constructor(
     // define a flow for apps here and get the apps here
     // in view model init
     // view model's life cycle will surpass that of activity
+
+    private val _apps = MutableStateFlow<List<AppEntry>>(emptyList())
+    val apps: StateFlow<List<AppEntry>> =  _apps;
+
+    // launch in view model scope because it won't get cancelled
+    // if somehow the activity/compose gets weirded out/destroyed
+    init {
+        viewModelScope.launch {
+            _apps.value = repo.getInstalledApps()
+        }
+    }
 }
