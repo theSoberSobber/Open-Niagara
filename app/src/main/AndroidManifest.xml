@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
+<!--    TODO: need to add more tags here, nostate and have only one instance etc. will add soon-->
     <application
         android:name=".LauncherApp"
         android:allowBackup="true"
@@ -23,8 +24,10 @@
             android:theme="@style/Theme.Vanilla">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+<!--                home button opens this shit-->
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
+<!--                can be launched by a launcher-->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

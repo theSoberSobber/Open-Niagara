@@ -1,6 +1,5 @@
-package com.pavit.vanilla.ui
+package com.pavit.vanilla.ui.viewmodels
 
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pavit.vanilla.data.AppRepository
@@ -11,7 +10,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 // state owner
@@ -37,7 +35,7 @@ class LauncherViewModel @Inject constructor(
     val groupedFilteredApps: StateFlow<Map<Char, List<AppEntry>>> = observeFilteredGroupedApps(selectedLetter)
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
+            started = SharingStarted.Companion.WhileSubscribed(5_000),
             initialValue = emptyMap()
         )
 

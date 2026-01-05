@@ -1,4 +1,4 @@
-package com.pavit.vanilla.ui
+package com.pavit.vanilla.ui.screens
 
 import android.util.Log
 import androidx.compose.foundation.background
@@ -11,6 +11,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import com.pavit.vanilla.ui.viewmodels.LauncherViewModel
 import com.pavit.vanilla.ui.components.AppList.AppList
 
 // need hilt navigation compose dependency for injecting the view model here
