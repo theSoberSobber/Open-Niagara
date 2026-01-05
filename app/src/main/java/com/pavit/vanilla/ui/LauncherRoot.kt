@@ -10,7 +10,8 @@ import androidx.compose.ui.graphics.Color
 
 @Composable
 fun LauncherRoot(){
-    Surface (modifier = Modifier.fillMaxSize().systemBarsPadding(), color = Color.Transparent){
+    // removing system bars padding from the modifier because i like the overlap
+    Surface (modifier = Modifier.fillMaxSize(), color = Color.Transparent){
         LauncherScreen()
     }
 }

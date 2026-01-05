@@ -2,6 +2,7 @@ package com.pavit.vanilla.ui
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -33,6 +34,9 @@ class MainActivity : ComponentActivity() {
     @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
     @SuppressLint("MissingSuperCall", "GestureBackNavigation")
     override fun onBackPressed() {
+        // it somehow still loses state and the entire thing recomposes????
+        // needs investigation.... something to do with the new viewModel?
+        Log.d("Back", "back pressed!?")
         // super.onBackPressed()
         // we ain't going back dawg
     }
