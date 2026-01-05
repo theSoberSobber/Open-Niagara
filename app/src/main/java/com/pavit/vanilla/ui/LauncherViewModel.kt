@@ -27,8 +27,8 @@ class LauncherViewModel @Inject constructor(
     // in view model init
     // view model's life cycle will surpass that of activity
 
-    private val _apps = MutableStateFlow<List<AppEntry>>(emptyList())
-    val apps: StateFlow<List<AppEntry>> =  _apps;
+//    private val _apps = MutableStateFlow<List<AppEntry>>(emptyList())
+//    val apps: StateFlow<List<AppEntry>> =  _apps;
 
     // newer impl
     private val _selectedLetter = MutableStateFlow<Char?>(null)
@@ -44,11 +44,11 @@ class LauncherViewModel @Inject constructor(
     // launch in view model scope because it won't get cancelled
     // if somehow the activity/compose gets weirded out/destroyed
 
-    init {
-        viewModelScope.launch {
-            _apps.value = repo.getInstalledApps()
-        }
-    }
+//    init {
+//        viewModelScope.launch {
+//            _apps.value = repo.getInstalledApps()
+//        }
+//    }
 
     fun onLetterSelected(letter: Char?){
         _selectedLetter.value = letter

@@ -25,8 +25,8 @@ fun LauncherScreen(
 //            color = Color.White,
 //            modifier = Modifier.align(Alignment.Center)
 //        )
-        val apps = vm.apps.collectAsState().value
-        Log.d("Apps Queried: ", apps.toString());
+//        val apps = vm.apps.collectAsState().value
+//        Log.d("Apps Queried: ", apps.toString());
 
         val groupedFilteredApps by vm.groupedFilteredApps.collectAsState()
         Log.d("GroupedFilteredApps2", groupedFilteredApps.toString())
